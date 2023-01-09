@@ -1,22 +1,33 @@
-import {RuntimeVal} from "./values.ts";
-import {MAKE_BOOLEAN, MAKE_NULL} from "../macros.ts";
+import {FunctionCall, RuntimeVal} from "./values.ts";
+import {MAKE_BOOLEAN, MAKE_NATIVE_FN, MAKE_NULL} from "../macros.ts";
+import Env = Deno.Env;
 
-function setScope(env: Environment) {
-    env.declareVariable("true", MAKE_BOOLEAN(true), true);
-    env.declareVariable("false", MAKE_BOOLEAN(false), true);
-    env.declareVariable("null", MAKE_NULL(), true);
-}
 
 export default class Environment {
+    public static createDefaultEnvironment(): Environment {
+        const env = new Environment();
+        env.declareVariable("true", MAKE_BOOLEAN(true), true);
+        env.declareVariable("false", MAKE_BOOLEAN(false), true);
+        env.declareVariable("null", MAKE_NULL(), true);
+        env.declareFunction("print", (args: RuntimeVal[]) => {
+            console.log(...args.map(arg => arg.value));
+            return MAKE_NULL();
+        });
+
+        return env;
+    }
+
     parent?: Environment;
     private variables: Map<string, RuntimeVal> = new Map();
     private constants: Set<string> = new Set<string>();
 
     constructor(parent?: Environment) {
-        if (!parent) setScope(this);
         this.parent = parent;
     }
 
+    public declareFunction(functionName: string, fnCall: FunctionCall) {
+        this.declareVariable(functionName, MAKE_NATIVE_FN(fnCall), true);
+    }
 
     public declareVariable(name: string, value: RuntimeVal, isConstant: boolean): RuntimeVal {
         if (this.variables.has(name)) throw new Error(`Variable ${name} already declared`);

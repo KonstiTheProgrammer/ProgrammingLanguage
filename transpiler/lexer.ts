@@ -15,10 +15,12 @@ export enum TokenType {
     CloseBracket,
     BinaryOperator,
     Comma,
+    Dot,
     Let,
     EOF,
     Const,
-    Colon
+    Colon,
+    SemiColon,
 }
 
 const KEYWORDS: Record<string, TokenType> = {
@@ -49,6 +51,10 @@ export function tokenize(input: string): Token[] {
             tokens.push(token(src.shift(), TokenType.Comma));
         else if (src[0] === ':')
             tokens.push(token(src.shift(), TokenType.Colon));
+        else if (src[0] === ';')
+            tokens.push(token(src.shift(), TokenType.SemiColon));
+        else if (src[0] === '.')
+            tokens.push(token(src.shift(), TokenType.Dot));
         else if (src[0] === '=')
             tokens.push(token(src.shift(), TokenType.Equals));
         else if (src[0] === '+' || src[0] === '-' || src[0] === '*' || src[0] === '/' || src[0] === '%')

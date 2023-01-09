@@ -6,7 +6,9 @@ export type NodeType =
     | 'VariableDeclaration'
     | 'AssignmentExpression'
     | 'Property'
-    | 'ObjectLiteral';
+    | 'ObjectLiteral'
+    | 'CallExpression'
+    | 'MemberExpression'
 
 export interface Statement {
     kind: NodeType
@@ -60,4 +62,17 @@ export interface Property extends Expression {
 export interface ObjectLiteral extends Expression {
     kind: 'ObjectLiteral'
     properties: Property[]
+}
+
+export interface CallExpression extends Expression {
+    kind: 'CallExpression'
+    args: Expression[]
+    caller: Expression
+}
+
+export interface MemberExpression extends Expression {
+    kind: 'MemberExpression'
+    object: Expression
+    property: Expression
+    computed: boolean
 }

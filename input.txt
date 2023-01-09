@@ -1,7 +1,4 @@
-const object = {
-    age: 30,
-    location: {
-        city: true,
-        country: false
-    }
+const a = {
+    a: 10 / 10
 }
+

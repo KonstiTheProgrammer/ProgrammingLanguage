@@ -8,12 +8,11 @@ repl();
 
 async function repl() {
     const parser = new Parser();
-    const env = new Environment();
-
+    const env = Environment.createDefaultEnvironment();
     const input = await readTextFile("input.txt");
     if (!input || input.includes("exit")) Deno.exit(0);
     const program = parser.produceAst(tokenize(input));
-    console.log(program)
+    console.log(JSON.stringify(program, null, 2));
     const result = evaluateExpression(program, env);
     console.log(result);
 }
