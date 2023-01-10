@@ -5,9 +5,9 @@ import {
     Statement,
     Program,
     NumericLiteral,
-    VariableDeclaration, AssignmentExpression, Property, ObjectLiteral, CallExpression, MemberExpression
-} from './ast.ts'
-import {tokenize, TokenType, Token} from './lexer.ts'
+    VariableDeclaration, AssignmentExpression, Property, ObjectLiteral, CallExpression, MemberExpression, StringLiteral
+} from './ast'
+import {TokenType, Token} from './lexer'
 
 export class Parser {
     private tokens: Token[] = [];
@@ -79,6 +79,8 @@ export class Parser {
                 return {kind: "Identifier", symbol: this.eat().value} as Identifier;
             case TokenType.Number:
                 return {kind: "NumericLiteral", value: parseFloat(this.eat().value)} as NumericLiteral;
+            case TokenType.String:
+                return {kind: "StringLiteral", value: this.eat().value} as StringLiteral;
             case TokenType.OpenParen: {
                 this.eat();
                 const expr = this.parseExpression();
@@ -183,8 +185,8 @@ export class Parser {
     private parseCallExpression(caller: Expression): Expression {
         let callExpression: CallExpression = {kind: "CallExpression", caller, args: this.parseArguments()};
 
-        if(this.at().type == TokenType.OpenParen){
-            callExpression= this.parseCallExpression(callExpression);
+        if (this.at().type == TokenType.OpenParen) {
+            callExpression = this.parseCallExpression(callExpression) as CallExpression;
         }
 
         return callExpression;

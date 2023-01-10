@@ -21,6 +21,7 @@ export enum TokenType {
     Const,
     Colon,
     SemiColon,
+    String
 }
 
 const KEYWORDS: Record<string, TokenType> = {
@@ -36,38 +37,46 @@ export function tokenize(input: string): Token[] {
         if (isRedundant(src[0]))
             src.shift();
         else if (src[0] === '(')
-            tokens.push(token(src.shift(), TokenType.OpenParen));
+            tokens.push(token(src.shift()!, TokenType.OpenParen));
         else if (src[0] === ')')
-            tokens.push(token(src.shift(), TokenType.CloseParen));
+            tokens.push(token(src.shift()!, TokenType.CloseParen));
         else if (src[0] === '{')
-            tokens.push(token(src.shift(), TokenType.OpenBrace));
+            tokens.push(token(src.shift()!, TokenType.OpenBrace));
         else if (src[0] === '}')
-            tokens.push(token(src.shift(), TokenType.CloseBrace));
+            tokens.push(token(src.shift()!, TokenType.CloseBrace));
         else if (src[0] === '[')
-            tokens.push(token(src.shift(), TokenType.OpenBracket));
+            tokens.push(token(src.shift()!, TokenType.OpenBracket));
         else if (src[0] === ']')
-            tokens.push(token(src.shift(), TokenType.CloseBracket));
+            tokens.push(token(src.shift()!, TokenType.CloseBracket));
         else if (src[0] === ',')
-            tokens.push(token(src.shift(), TokenType.Comma));
+            tokens.push(token(src.shift()!, TokenType.Comma));
         else if (src[0] === ':')
-            tokens.push(token(src.shift(), TokenType.Colon));
+            tokens.push(token(src.shift()!, TokenType.Colon));
         else if (src[0] === ';')
-            tokens.push(token(src.shift(), TokenType.SemiColon));
+            tokens.push(token(src.shift()!, TokenType.SemiColon));
         else if (src[0] === '.')
-            tokens.push(token(src.shift(), TokenType.Dot));
+            tokens.push(token(src.shift()!, TokenType.Dot));
         else if (src[0] === '=')
-            tokens.push(token(src.shift(), TokenType.Equals));
+            tokens.push(token(src.shift()!, TokenType.Equals));
         else if (src[0] === '+' || src[0] === '-' || src[0] === '*' || src[0] === '/' || src[0] === '%')
-            tokens.push(token(src.shift(), TokenType.BinaryOperator));
-        else if (src[0].match(/[0-9]/)) {
+            tokens.push(token(src.shift()!, TokenType.BinaryOperator));
+        else if (src[0] === '"') {
+            src.shift()!;
+            let value = '';
+            while (src[0] !== '"') {
+                value += src.shift()!;
+            }
+            src.shift()!;
+            tokens.push(token(value, TokenType.String));
+        } else if (src[0].match(/[0-9]/)) {
             let number = '';
             while (src.length > 0 && src[0].match(/[0-9]/))
-                number += src.shift();
+                number += src.shift()!;
             tokens.push(token(number, TokenType.Number));
         } else if (src[0].match(/[a-zA-Z]/)) {
             let identifier = '';
             while (src.length > 0 && src[0].match(/[a-zA-Z]/))
-                identifier += src.shift();
+                identifier += src.shift()!;
             if (KEYWORDS[identifier])
                 tokens.push(token(identifier, KEYWORDS[identifier]));
             else

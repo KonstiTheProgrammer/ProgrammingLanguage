@@ -1,4 +1,4 @@
-import {BooleanValue, FunctionCall, NativeFunctionValue, NullValue, NumberValue} from "./runtime/values.ts";
+import {BooleanValue, FunctionCall, NativeFunctionValue, NullValue, NumberValue} from "./runtime/values";
 
 export function MAKE_NUMBER(value: number): NumberValue {
     return {value: value, type: "number"} as NumberValue;

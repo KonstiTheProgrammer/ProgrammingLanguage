@@ -1,6 +1,5 @@
-import {FunctionCall, RuntimeVal} from "./values.ts";
-import {MAKE_BOOLEAN, MAKE_NATIVE_FN, MAKE_NULL} from "../macros.ts";
-import Env = Deno.Env;
+import {FunctionCall, RuntimeVal} from "./values";
+import {MAKE_BOOLEAN, MAKE_NATIVE_FN, MAKE_NULL} from "../macros";
 
 
 export default class Environment {
@@ -9,8 +8,10 @@ export default class Environment {
         env.declareVariable("true", MAKE_BOOLEAN(true), true);
         env.declareVariable("false", MAKE_BOOLEAN(false), true);
         env.declareVariable("null", MAKE_NULL(), true);
+
         env.declareFunction("print", (args: RuntimeVal[]) => {
-            console.log(...args.map(arg => arg.value));
+            // @ts-ignore
+            console.log(...args.map((arg) => (arg.value)));
             return MAKE_NULL();
         });
 

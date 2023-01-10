@@ -1,6 +1,7 @@
 export type NodeType =
     | 'Program'
     | 'NumericLiteral'
+    | 'StringLiteral'
     | 'Identifier'
     | 'BinaryExpression'
     | 'VariableDeclaration'
@@ -75,4 +76,9 @@ export interface MemberExpression extends Expression {
     object: Expression
     property: Expression
     computed: boolean
+}
+
+export interface StringLiteral extends Expression {
+    kind: 'StringLiteral'
+    value: string
 }

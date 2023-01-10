@@ -4,17 +4,15 @@ import {
     Identifier,
     NumericLiteral, ObjectLiteral,
     Program,
-    Statement,
+    Statement, StringLiteral,
     VariableDeclaration
-} from "../transpiler/ast.ts";
-import {NativeFunctionValue, NumberValue, ObjectValue, RuntimeVal} from "./values.ts";
-import Environment from "./environment.ts";
-import {evaluateBinaryExpression} from "./evaluation/evaluateBinaryExpression.ts";
-import {evaluateProgram} from "./evaluation/evaluateProgram.ts";
-import {evaluateIdentifier} from "./evaluation/evaluateIdentifier.ts";
-import {evaluateVariableDeclaration} from "./evaluation/evaluateVariableDeclaration.ts";
-import Env = Deno.Env;
-import {MAKE_NULL} from "../macros.ts";
+} from "../transpiler/ast";
+import {NativeFunctionValue, NumberValue, ObjectValue, RuntimeVal, StringValue} from "./values";
+import Environment from "./environment";
+import {evaluateBinaryExpression} from "./evaluation/evaluateBinaryExpression";
+import {evaluateProgram} from "./evaluation/evaluateProgram";
+import {evaluateIdentifier} from "./evaluation/evaluateIdentifier";
+import {evaluateVariableDeclaration} from "./evaluation/evaluateVariableDeclaration";
 
 export function evaluateAssignment(node: AssignmentExpression, env: Environment): RuntimeVal {
     if (node.assignee.kind !== "Identifier") {
@@ -26,7 +24,10 @@ export function evaluateAssignment(node: AssignmentExpression, env: Environment)
 
 
 export function evaluateObjectExpression(object: ObjectLiteral, env: Environment): RuntimeVal {
-    const obj = {type: "object", properties: new Map()} as ObjectValue;
+    const obj: ObjectValue = {
+        type: "object",
+        properties: new Map<string, RuntimeVal>()
+    }
 
     for (const property of object.properties) {
         const runtimeVal = (property.value == undefined) ?
@@ -55,6 +56,8 @@ export function evaluateExpression(Node: Statement, env: Environment): RuntimeVa
     switch (Node.kind) {
         case "NumericLiteral":
             return {value: (Node as NumericLiteral).value, type: "number"} as NumberValue;
+        case "StringLiteral":
+            return {value: (Node as StringLiteral).value, type: "string"} as StringValue;
         case "AssignmentExpression":
             return evaluateAssignment(Node as AssignmentExpression, env);
         case "Identifier":
@@ -62,7 +65,7 @@ export function evaluateExpression(Node: Statement, env: Environment): RuntimeVa
         case "CallExpression":
             return evaluateCallExpression(Node as CallExpression, env);
         case "BinaryExpression":
-            return evaluateBinaryExpression(Node as BinaryExpression, env);J
+            return evaluateBinaryExpression(Node as BinaryExpression, env);
         case "VariableDeclaration":
             return evaluateVariableDeclaration(Node as VariableDeclaration, env);
         case "ObjectLiteral":
