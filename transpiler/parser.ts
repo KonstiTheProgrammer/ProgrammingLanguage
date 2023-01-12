@@ -5,7 +5,14 @@ import {
     Statement,
     Program,
     NumericLiteral,
-    VariableDeclaration, AssignmentExpression, Property, ObjectLiteral, CallExpression, MemberExpression, StringLiteral
+    VariableDeclaration,
+    AssignmentExpression,
+    Property,
+    ObjectLiteral,
+    CallExpression,
+    MemberExpression,
+    StringLiteral,
+    FunctionDeclaration
 } from './ast'
 import {TokenType, Token} from './lexer'
 
@@ -24,11 +31,13 @@ export class Parser {
         return this.tokens.shift() as Token;
     }
 
-    private parseStmt(): Statement {
+    private parseStatement(): Statement {
         switch (this.at().type) {
             case TokenType.Let:
             case TokenType.Const:
                 return this.parseVariableDeclaration();
+            case TokenType.Function:
+                return this.parseFunctionDeclaration();
             default:
                 return this.parseExpression();
         }
@@ -63,7 +72,7 @@ export class Parser {
         }
 
         while (this.notEOF()) {
-            program.body.push(this.parseStmt());
+            program.body.push(this.parseStatement());
         }
 
         this.tokens = tokens;
@@ -233,6 +242,40 @@ export class Parser {
 
         return obj;
     }
+
+    private parseStatementList(): Expression[] {
+        const args = []
+        this.expect(TokenType.OpenBrace, "Expected an opening parenthesis");
+        while (this.notEOF() && this.at().type != TokenType.CloseBrace) {
+            args.push(this.parseStatement());
+        }
+        this.expect(TokenType.CloseBrace, "Expected a closing parenthesis");
+        return args;
+    }
+
+    public parseFunctionDeclaration(): Expression {
+        this.eat();
+        const name = this.expect(TokenType.Identifier, "Expected an identifier").value;
+        this.expect(TokenType.OpenParen, "Expected an opening parenthesis");
+
+        const functionArguments = [];
+
+        while (this.at().type !== TokenType.CloseParen) {
+            const arg = this.expect(TokenType.Identifier, "Expected an identifier").value;
+            functionArguments.push(arg);
+            if (this.at().type === TokenType.Comma) this.eat();
+        }
+
+        this.expect(TokenType.CloseParen, "Expected a closing parenthesis");
+
+        return {
+            kind: "FunctionDeclaration",
+            name,
+            args: functionArguments,
+            body: this.parseStatementList()
+        } as FunctionDeclaration;
+    }
+
 }
 
 //Order of operations

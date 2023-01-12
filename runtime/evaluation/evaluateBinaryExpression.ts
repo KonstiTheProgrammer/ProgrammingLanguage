@@ -1,11 +1,11 @@
 import {BinaryExpression} from "../../transpiler/ast";
 import Environment from "../environment";
 import {NullValue, NumberValue, RuntimeVal} from "../values";
-import {evaluateExpression} from "../interpreter";
+import {evaluateStatement} from "../interpreter";
 
 export function evaluateBinaryExpression(binaryExpression: BinaryExpression, env: Environment): RuntimeVal {
-    const leftSide = evaluateExpression(binaryExpression.left, env) as NumberValue;
-    const rightSide = evaluateExpression(binaryExpression.right, env) as NumberValue;
+    const leftSide = evaluateStatement(binaryExpression.left, env) as NumberValue;
+    const rightSide = evaluateStatement(binaryExpression.right, env) as NumberValue;
 
     if (leftSide.type === "number" && rightSide.type === "number") {
         const leftNumber = leftSide.value;

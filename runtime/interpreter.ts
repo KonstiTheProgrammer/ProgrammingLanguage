@@ -1,25 +1,26 @@
 import {
     AssignmentExpression,
-    BinaryExpression, CallExpression,
+    BinaryExpression, CallExpression, FunctionDeclaration,
     Identifier,
     NumericLiteral, ObjectLiteral,
     Program,
     Statement, StringLiteral,
     VariableDeclaration
 } from "../transpiler/ast";
-import {NativeFunctionValue, NumberValue, ObjectValue, RuntimeVal, StringValue} from "./values";
+import {FunctionValue, NativeFunctionValue, NumberValue, ObjectValue, RuntimeVal, StringValue} from "./values";
 import Environment from "./environment";
 import {evaluateBinaryExpression} from "./evaluation/evaluateBinaryExpression";
 import {evaluateProgram} from "./evaluation/evaluateProgram";
 import {evaluateIdentifier} from "./evaluation/evaluateIdentifier";
 import {evaluateVariableDeclaration} from "./evaluation/evaluateVariableDeclaration";
+import {MAKE_NULL, MAKE_NUMBER} from "../macros";
 
 export function evaluateAssignment(node: AssignmentExpression, env: Environment): RuntimeVal {
     if (node.assignee.kind !== "Identifier") {
         throw `Invalid assignment expr ${JSON.stringify(node.assignee)}`;
     }
     const varname = (node.assignee as Identifier).symbol;
-    return env.assignVariable(varname, evaluateExpression(node.value, env));
+    return env.assignVariable(varname, evaluateStatement(node.value, env));
 }
 
 
@@ -32,7 +33,7 @@ export function evaluateObjectExpression(object: ObjectLiteral, env: Environment
     for (const property of object.properties) {
         const runtimeVal = (property.value == undefined) ?
             env.lookupVariable(property.key) :
-            evaluateExpression(property.value, env);
+            evaluateStatement(property.value, env);
 
         obj.properties.set(property.key, runtimeVal);
     }
@@ -41,18 +42,52 @@ export function evaluateObjectExpression(object: ObjectLiteral, env: Environment
 }
 
 export function evaluateCallExpression(expression: CallExpression, env: Environment): RuntimeVal {
-    const args = expression.args.map((arg) => evaluateExpression(arg, env));
-    const fn = evaluateExpression(expression.caller, env);
+    const args = expression.args.map((arg) => evaluateStatement(arg, env));
+    const fn = evaluateStatement(expression.caller, env);
 
-    if (fn.type !== "nativeFunction") {
-        throw `Invalid function call ${expression.caller}`;
+    if (fn.type == "nativeFunction") {
+        return (fn as NativeFunctionValue).call(args, env);
     }
 
-    const result = (fn as NativeFunctionValue).call(args, env);
-    return result;
+    if (fn.type == "function") {
+        const func = fn as FunctionValue;
+        const scopeEnv = new Environment(func.declarationEnv);
+
+        func.args.forEach((arg, index) => {
+            scopeEnv.declareVariable(arg, args[index], false);
+        });
+
+        let result: RuntimeVal = MAKE_NULL();
+        func.body.forEach((statement) => {
+            result = evaluateStatement(statement, scopeEnv)
+        });
+
+        return result;
+    }
+
+    throw new Error(`Invalid function call ${JSON.stringify(expression)}`);
 }
 
-export function evaluateExpression(Node: Statement, env: Environment): RuntimeVal {
+function evaluateFunctionDeclaration(node: FunctionDeclaration, env: Environment): RuntimeVal {
+    const fn: FunctionValue = {
+        type: "function",
+        name: node.name,
+        args: node.args,
+        body: node.body,
+        declarationEnv: env
+    }
+
+    env.declareVariable(
+        fn.name,
+        fn,
+        true
+    );
+
+    return MAKE_NULL();
+}
+
+
+export function evaluateStatement(Node: Statement, env: Environment): RuntimeVal {
     switch (Node.kind) {
         case "NumericLiteral":
             return {value: (Node as NumericLiteral).value, type: "number"} as NumberValue;
@@ -68,6 +103,8 @@ export function evaluateExpression(Node: Statement, env: Environment): RuntimeVa
             return evaluateBinaryExpression(Node as BinaryExpression, env);
         case "VariableDeclaration":
             return evaluateVariableDeclaration(Node as VariableDeclaration, env);
+        case "FunctionDeclaration":
+            return evaluateFunctionDeclaration(Node as FunctionDeclaration, env);
         case "ObjectLiteral":
             return evaluateObjectExpression(Node as ObjectLiteral, env);
         case "Program":

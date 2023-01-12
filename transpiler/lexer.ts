@@ -21,12 +21,14 @@ export enum TokenType {
     Const,
     Colon,
     SemiColon,
-    String
+    String,
+    Function
 }
 
 const KEYWORDS: Record<string, TokenType> = {
     let: TokenType.Let,
-    const: TokenType.Const
+    const: TokenType.Const,
+    fn: TokenType.Function
 }
 
 export function tokenize(input: string): Token[] {
@@ -61,21 +63,21 @@ export function tokenize(input: string): Token[] {
         else if (src[0] === '+' || src[0] === '-' || src[0] === '*' || src[0] === '/' || src[0] === '%')
             tokens.push(token(src.shift()!, TokenType.BinaryOperator));
         else if (src[0] === '"') {
-            src.shift()!;
+            src.shift();
             let value = '';
             while (src[0] !== '"') {
                 value += src.shift()!;
             }
-            src.shift()!;
+            src.shift();
             tokens.push(token(value, TokenType.String));
-        } else if (src[0].match(/[0-9]/)) {
+        } else if (src[0].match(/[0-9]*.[0-9]*/)) {
             let number = '';
-            while (src.length > 0 && src[0].match(/[0-9]/))
+            while (src.length > 0 && src[0].match(/[0-9]*.[0-9]*/))
                 number += src.shift()!;
             tokens.push(token(number, TokenType.Number));
-        } else if (src[0].match(/[a-zA-Z]/)) {
+        } else if (src[0].match(/[a-zA-Z_]/)) {
             let identifier = '';
-            while (src.length > 0 && src[0].match(/[a-zA-Z]/))
+            while (src.length > 0 && src[0].match(/[a-zA-Z_]/))
                 identifier += src.shift()!;
             if (KEYWORDS[identifier])
                 tokens.push(token(identifier, KEYWORDS[identifier]));

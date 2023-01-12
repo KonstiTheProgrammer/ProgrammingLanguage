@@ -1,1 +1,3 @@
-const x = 100 / "kuss"
+fn makesus(kessezahl, l){
+    print(kessezahl);
+}

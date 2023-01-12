@@ -10,6 +10,7 @@ export type NodeType =
     | 'ObjectLiteral'
     | 'CallExpression'
     | 'MemberExpression'
+    | 'FunctionDeclaration'
 
 export interface Statement {
     kind: NodeType
@@ -76,6 +77,13 @@ export interface MemberExpression extends Expression {
     object: Expression
     property: Expression
     computed: boolean
+}
+
+export interface FunctionDeclaration extends Statement {
+    kind: "FunctionDeclaration"
+    args: string[]
+    name: string
+    body: Statement[]
 }
 
 export interface StringLiteral extends Expression {
